@@ -1,6 +1,6 @@
 /* Simple offline cache for the Block Blast app shell.
    Bump CACHE when you change any asset so clients refresh. */
-const CACHE = "block-blast-v1";
+const CACHE = "block-blast-v2";
 const ASSETS = [
   ".",
   "index.html",

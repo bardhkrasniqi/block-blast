@@ -170,9 +170,21 @@
   }
 
   function place(piece, top, left) {
-    for (const [dr, dc] of piece.shape) board[idx(top + dr, left + dc)] = piece.color;
+    const placed = [];
+    for (const [dr, dc] of piece.shape) {
+      const i = idx(top + dr, left + dc);
+      board[i] = piece.color;
+      placed.push(i);
+    }
     score += piece.shape.length;               // points for each cell placed
     renderBoard();
+    // Pop each placed cell in.
+    for (const i of placed) {
+      const el = cellEls[i];
+      el.classList.remove("placed");
+      void el.offsetWidth;                     // restart the animation
+      el.classList.add("placed");
+    }
     resolveClears();
     updateScore();
   }
@@ -198,7 +210,15 @@
     const toClear = new Set();
     for (const r of fullRows) for (let c = 0; c < N; c++) toClear.add(idx(r, c));
     for (const c of fullCols) for (let r = 0; r < N; r++) toClear.add(idx(r, c));
-    for (const i of toClear) cellEls[i].classList.add("clearing");
+    // Ripple the blast outward from the board's center.
+    for (const i of toClear) {
+      const r = (i / N) | 0, c = i % N;
+      const delay = (Math.abs(r - 3.5) + Math.abs(c - 3.5)) * 22;
+      const el = cellEls[i];
+      el.classList.remove("placed");
+      el.style.animationDelay = delay + "ms";
+      el.classList.add("clearing");
+    }
 
     combo += 1;
     // Scoring: 10 per line, quadratic bonus for multi-line blasts, plus combo streak.
@@ -209,9 +229,14 @@
     if (lines >= 2 || combo > 1) showCombo(lines, combo);
 
     setTimeout(() => {
-      for (const i of toClear) { board[i] = null; cellEls[i].classList.remove("clearing"); }
+      for (const i of toClear) {
+        board[i] = null;
+        const el = cellEls[i];
+        el.classList.remove("clearing");
+        el.style.animationDelay = "";
+      }
       renderBoard();
-    }, 280);
+    }, 520);
   }
 
   function showCombo(lines, streak) {
@@ -302,8 +327,8 @@
 
     const lift = e.pointerType === "touch" ? cs * 1.35 : 0;
 
-    drag = { index, piece, rows, cols, grabDR, grabDC, float, cs, gap, lift, el };
-    moveDrag(e);
+    drag = { index, piece, rows, cols, grabDR, grabDC, float, cs, gap, lift, el, raf: 0, gr: -99, gc: -99 };
+    applyDrag(e);                        // position + ghost immediately, no wait
 
     window.addEventListener("pointermove", moveDrag);
     window.addEventListener("pointerup", endDrag);
@@ -327,17 +352,28 @@
 
   function moveDrag(e) {
     if (!drag) return;
-    const { float, grabDR, grabDC, cs, gap } = drag;
+    drag.lastEvent = e;
+    if (drag.raf) return;                 // coalesce many pointer events into one frame
+    drag.raf = requestAnimationFrame(() => { drag.raf = 0; applyDrag(drag.lastEvent); });
+  }
+
+  function applyDrag(e) {
+    if (!drag) return;
+    const { float, cs } = drag;
     const t = targetCell(e);
-    // place the floating clone so its top-left cell aligns to the grid mentally
-    float.style.left = (t.cellCenterX - cs / 2) + "px";
-    float.style.top  = (t.cellCenterY - cs / 2) + "px";
+    // GPU-composited transform — no layout/reflow, so it tracks the pointer 1:1.
+    float.style.transform =
+      `translate3d(${t.cellCenterX - cs / 2}px, ${t.cellCenterY - cs / 2}px, 0)`;
+
+    drag.top = t.row; drag.left = t.col;
+
+    // Only repaint the ghost when the landing cell actually changes.
+    if (t.row === drag.gr && t.col === drag.gc) return;
+    drag.gr = t.row; drag.gc = t.col;
 
     clearGhost();
-    drag.valid = false;
-    drag.top = t.row; drag.left = t.col;
-    if (canPlaceAt(drag.piece.shape, t.row, t.col)) {
-      drag.valid = true;
+    drag.valid = canPlaceAt(drag.piece.shape, t.row, t.col);
+    if (drag.valid) {
       for (const [dr, dc] of drag.piece.shape) {
         const el = cellEls[idx(t.row + dr, t.col + dc)];
         el.classList.add("ghost");
@@ -354,6 +390,7 @@
 
   function endDrag() {
     if (!drag) return;
+    if (drag.raf) cancelAnimationFrame(drag.raf);
     window.removeEventListener("pointermove", moveDrag);
     window.removeEventListener("pointerup", endDrag);
     window.removeEventListener("pointercancel", endDrag);

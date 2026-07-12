@@ -93,13 +93,26 @@ html, body {
   background: var(--c, #7dcfff);
   box-shadow: inset 0 -4px 0 rgba(0,0,0,0.22), inset 0 2px 0 rgba(255,255,255,0.25);
 }
-.cell.ghost { background: var(--c, #7dcfff); opacity: .38; }
+.cell.ghost { background: var(--c, #7dcfff); opacity: .42; animation: ghostpulse 1.1s ease-in-out infinite; }
 .cell.ghost-bad { background: var(--bad); opacity: .30; }
-.cell.clearing { animation: pop .28s ease forwards; }
+/* pop-in when a piece is placed */
+.cell.placed { animation: drop .24s cubic-bezier(.2,.9,.3,1.3); }
+/* blast when a line clears (defined after .placed so it always wins) */
+.cell.clearing { animation: pop .34s ease forwards; z-index: 2; }
+
+@keyframes ghostpulse {
+  0%, 100% { opacity: .34; }
+  50%      { opacity: .5; }
+}
+@keyframes drop {
+  0%   { transform: scale(.4);  filter: brightness(1.9); }
+  70%  { transform: scale(1.1); }
+  100% { transform: scale(1);   filter: brightness(1); }
+}
 @keyframes pop {
-  0%   { transform: scale(1);   filter: brightness(1.6); }
-  55%  { transform: scale(1.15); filter: brightness(2.2); }
-  100% { transform: scale(0);   filter: brightness(1); }
+  0%   { transform: scale(1) rotate(0);       filter: brightness(1.8); }
+  35%  { transform: scale(1.28) rotate(-4deg); filter: brightness(2.8); }
+  100% { transform: scale(0) rotate(8deg);     filter: brightness(1); opacity: 0; }
 }
 
 /* ---- Tray ---- */
@@ -141,6 +154,7 @@ html, body {
   gap: var(--grid-gap);
   pointer-events: none;
   z-index: 50;
+  will-change: transform;               /* promote to its own layer for smooth dragging */
   filter: drop-shadow(0 8px 14px rgba(0,0,0,0.45));
 }
 .float .pcell { border-radius: 8px; }
