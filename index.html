@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#1a1b26" />
+  <title>Block Blast</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='45' height='45' x='5' y='5' rx='8' fill='%23ff9e64'/><rect width='45' height='45' x='50' y='5' rx='8' fill='%237dcfff'/><rect width='45' height='45' x='5' y='50' rx='8' fill='%239ece6a'/><rect width='45' height='45' x='50' y='50' rx='8' fill='%23bb9af7'/></svg>" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <h1 class="logo">BLOCK&nbsp;BLAST</h1>
+      <div class="scores">
+        <div class="score-card">
+          <span class="label">SCORE</span>
+          <span class="value" id="score">0</span>
+        </div>
+        <div class="score-card best">
+          <span class="label">BEST</span>
+          <span class="value" id="best">0</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="board-wrap">
+      <div id="board" class="board" aria-label="game board"></div>
+      <div id="combo" class="combo-pop"></div>
+    </div>
+
+    <div id="tray" class="tray" aria-label="pieces"></div>
+
+    <footer class="footer">
+      <button id="restart" class="btn">↺ New Game</button>
+      <p class="hint">Drag pieces onto the grid. Fill a full row or column to blast it.</p>
+    </footer>
+  </div>
+
+  <div id="gameover" class="overlay hidden">
+    <div class="overlay-card">
+      <h2>Game Over</h2>
+      <p>No moves left.</p>
+      <div class="final-scores">
+        <div><span class="label">SCORE</span><span id="final-score" class="value">0</span></div>
+        <div><span class="label">BEST</span><span id="final-best" class="value">0</span></div>
+      </div>
+      <button id="play-again" class="btn primary">Play Again</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
