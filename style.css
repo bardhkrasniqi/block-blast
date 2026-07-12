@@ -23,15 +23,20 @@ html, body {
   font-family: "JetBrainsMono Nerd Font", "SF Mono", ui-monospace, Menlo, monospace;
   overscroll-behavior: none;
   touch-action: manipulation;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .app {
-  max-width: 460px;
+  max-width: 520px;
   margin: 0 auto;
   min-height: 100%;
-  padding: 16px 16px 24px;
+  /* keep clear of the iPad's rounded corners / home indicator */
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+           max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
   display: flex;
   flex-direction: column;
+  justify-content: center;   /* vertically centered on tall iPad screens */
   gap: 16px;
   user-select: none;
 }
@@ -63,7 +68,7 @@ html, body {
 .score-card.best .value { color: #ffd479; }
 
 /* ---- Board ---- */
-.board-wrap { position: relative; }
+.board-wrap { position: relative; display: flex; justify-content: center; }
 .board {
   --n: 8;
   display: grid;
@@ -74,7 +79,8 @@ html, body {
   border-radius: 16px;
   padding: var(--grid-gap);
   aspect-ratio: 1 / 1;
-  width: 100%;
+  /* fill width, but never taller than the screen (landscape / small heights) */
+  width: min(100%, 62vh);
   touch-action: none;
 }
 .cell {
